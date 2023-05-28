@@ -1,0 +1,82 @@
+---
+title: "tidycensus example"
+format: pdf
+editor: visual
+---
+
+## TidyCensus Example
+
+This notebook grabs data from the US Census using the [tidycensus package in R](https://walker-data.com/tidycensus/index.html). Make sure you have installed the `tidyverse` and `tidycensus` packages.
+
+```{r}
+
+library(tidycensus)
+library(tidyverse)
+```
+
+### Step 1 \| Get a Census API key and replace it in the cell below
+
+```{r}
+census_api_key("YOUR-CENSUS-API-KEY-HERE")
+
+```
+
+### Step 2 \| Figure out what tables you want data from
+
+Use <https://censusreporter.org/> to figure out which tables you want.
+
+-   Scroll to the bottom of the page to see the tables.
+
+-   If you already know the table ID, stick that in the "Explore" section to learn more about that table.
+
+Once you've found the variable or variables you want, you can plug them into this code:
+
+```{r}
+
+# the variable B01003_001E was selectd from the census table 
+# for population, which we found in censusreporter here:
+# https://censusreporter.org/tables/B01003/
+
+
+# Get variable from ACS
+population <- get_acs(geography = "county", 
+                      state='NY',
+                      variables = c(pop = "B01003_001E"), 
+                      year = 2021,
+                      survey="acs5")
+
+
+```
+
+List counties with the highest population in the US
+
+```{r}
+
+population %>% arrange(desc(estimate)) %>% head()
+```
+
+### Step 3 \| Example Map
+
+See more details about making maps here:
+
+https://walker-data.com/tidycensus/articles/spatial-data.html
+
+```{r}
+options(tigris_use_cache = TRUE)
+
+manhattan <- get_acs(
+  state = "NY",
+  county = "New York",
+  geography = "tract",
+  variables = "B01003_001E",
+  geometry = TRUE,
+  year = 2021
+)
+
+manhattan %>%
+  ggplot(aes(fill = estimate)) + 
+  geom_sf(color = NA) + 
+  scale_fill_viridis_c(option = "magma") 
+
+
+```
